@@ -24,7 +24,7 @@ This project provides a Python-based WebSocket client for monitoring real-time m
 
     ```bash
     git clone https://github.com/ruslanhq/rsi_vwap_test_task.git
-    cd your-repo
+    cd rsi_vwap_test_task
     ```
 
 2. Install dependencies:
