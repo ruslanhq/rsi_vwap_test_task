@@ -1,9 +1,9 @@
+import json
 from typing import List, Dict
 
-import json
-import websocket
 import pandas as pd
 import pandas_ta as ta
+import websockets
 
 
 class BinanceCandlestickWebSocket:
@@ -24,27 +24,15 @@ class BinanceCandlestickWebSocket:
         self._ws_url = f'wss://stream.binance.com:9443' \
                        f'/ws/{self.symbol.lower()}@kline_{self.timeframe}'
 
-    def connect(self):
+    async def connect(self):
         """
         Start WebSocket connection and calculate RSI.
         """
-        ws = websocket.WebSocketApp(
-            self._ws_url,
-            on_message=self._on_message,
-            on_close=self.on_close,
-            on_error=self.on_error,
-            on_open=self.on_open
-        )
-        ws.run_forever()
-
-    def on_open(self, ws):
-        print("WebSocket connection opened")
-
-    def on_close(self, ws, close_status_code, close_msg):
-        print(f"WebSocket connection closed with code {close_status_code}: {close_msg}")
-
-    def on_error(self, ws, error):
-        print(f"Error encountered: {error}")
+        async with websockets.connect(self._ws_url) as ws:
+            print("WebSocket connection opened")
+            while True:
+                message = await ws.recv()
+                await self._on_message(ws, message)
 
     def _calculate_rsi(self, close_prices: List[float]) -> List[float]:
         """
@@ -65,7 +53,7 @@ class BinanceCandlestickWebSocket:
             return close_price, rsi
         return None, None
 
-    def _on_message(self, ws, message):
+    async def _on_message(self, ws, message):
         """
         Process candlestick data from a WebSocket message
         and calculate RSI when a closed candlestick is received.
