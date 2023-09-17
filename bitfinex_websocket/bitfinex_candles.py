@@ -18,6 +18,7 @@ class BitfinexWebSocketClient:
         """
         self.currency_pair = currency_pair
         self.timeframe = timeframe
+        self.first_message_received = False  # Flag to skip the first message
 
     def _process_candle_data(self, candle_data: List):
         """
@@ -39,7 +40,6 @@ class BitfinexWebSocketClient:
         Callback function for handling received messages.
         """
         data = json.loads(message)
-        print(data)
 
         if isinstance(data, dict):
             if "event" in data and data["event"] == "subscribed":
@@ -47,6 +47,11 @@ class BitfinexWebSocketClient:
 
         if isinstance(data, list):
             if data[1] == "hb":
+                return
+
+            if not self.first_message_received:
+                # Skip first message with all candlesticks, which provides the current market state.
+                self.first_message_received = True
                 return
 
             candle_data = data[1]
